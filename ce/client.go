@@ -3,6 +3,7 @@ package ce
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"sync"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
@@ -58,14 +59,18 @@ func (c *EventClient) SendEvent(e EventGeneric) error {
 
 func (c *EventClient) SendEventAsync(e EventGeneric) error {
 	if c.wg == nil {
+		slog.Info("Sending Event without WaitGroup")
 		c.SendEvent(e)
+		slog.Info("Event Sent without WaitGroup")
 		return errors.New("Warning: SendEventAsync without WaitGroup, event might not be sent!")
 
 	} else {
 		c.wg.Add(1)
 		go func(e EventGeneric) {
+			slog.Info("Sending Event with WaitGroup")
 			defer c.wg.Done()
 			c.SendEvent(e)
+			slog.Info("Event Sent with WaitGroup")
 		}(e)
 		return nil
 
